@@ -1,2 +1,7 @@
+*
+!*.*
 .idea/
 .vscode/
+sml.json
+sml-json.sml
+out/
