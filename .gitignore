@@ -1,7 +1,9 @@
 *
 !*.*
+!*/
 .idea/
 .vscode/
 sml.json
 sml-json.sml
 out/
+learn.sml
