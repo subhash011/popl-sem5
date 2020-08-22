@@ -1,3 +1,9 @@
+(*
+val _ = use("2020-08-13-Getting-Started/tutorial.sml");
+*)
+
+
+
 (** * A tutorial to get started with Standard ML.
 
 
@@ -143,7 +149,6 @@ fun uncurry f (x,y) = f x y    (* convert to uncurried form *)
 val addp1 = curry  add           (* Notice the use of val instead of fun *)
 val incr  = addp1 1
 val add1  = uncurry addp
-
 
 (*
 
