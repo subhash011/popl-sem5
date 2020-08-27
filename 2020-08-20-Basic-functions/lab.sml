@@ -50,4 +50,4 @@ fun fibiter lst (prevval: IntInf.int) (curval: IntInf.int) iter =
     then curval
     else fibiter lst (prevval + curval) prevval (iter + 1);
 
-fun fib n = fibiter n 0 1 0;
+fun fib n = fibiter (n+1) 0 1 0;
