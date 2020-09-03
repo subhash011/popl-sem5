@@ -52,29 +52,3 @@ fun postorder null = []
 fun rotate null = null
     | rotate (node (null, data, right)) = node (null, data, right)
     | rotate (node (node(lleft, ldata, lright), data, right)) = node(lleft, ldata, node(lright, data, right));
-        
-
-(*
-other functions on trees
-*)
-
-fun height null = 0
-    | height (node (left, data, right)) = 
-        let
-          fun max a b = if a > b then a else b
-        in
-          (max (height left) (height right)) + 1
-        end
-
-
-fun depth _ null _ = ~1 |
-    depth null _ _ = ~1 |
-    depth (node (tleft, tdata, tright)) (node (left, data, right)) value = 
-    let
-        fun max a b = if a > b then a else b
-        fun equals a b = 
-    in
-        if tdata = data
-        then value + 1
-        else max (depth (node (tleft, tdata, tright)) left (value + 1)) (depth (node (tleft, tdata, tright)) right (value + 1))
-    end
