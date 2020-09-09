@@ -5,6 +5,8 @@ fun pow a = a * a;
 
 fun cond x = (x mod 2) = 0;
 
+fun diff (x, y) = x - y;
+
 (*Assignment starts here*)
 (*
 1. Define foldl and foldr
@@ -13,8 +15,7 @@ fun foldr _ y [] = y
     | foldr f y (x :: xs) = f (x, (foldr f y xs))
 
 fun foldl _ y [] = y
-    | foldl f y (x::xs) = 
-        foldl f (f (x, y)) xs
+    | foldl f y (x::xs) = foldl f (f (x, y)) xs
 
 (*
 2. define sum of int list
@@ -40,8 +41,7 @@ fun partition cond lst =
 4. map = fn: ('a -> 'b) -> 'a list -> 'b list
     f = fn: 'a -> 'b
 *)
-fun map _ [] = []
-    | map f lst = 
+fun map f lst = 
         let
             fun append (a, b) = (f a) :: b
         in
@@ -59,13 +59,14 @@ fun reverse lst =
         foldl revappend [] lst
     end
 
-
-datatype 'a Find = NotFound of int | Found of 'a;
-
 (*
 6. nth = fn: 'a list * int -> 'a option
    isith = fn: 'a * ('a * int * bool) -> ('a * int * bool)
 *)
+
+
+datatype 'a Find = NotFound of int | Found of 'a;
+
 fun nth lst i = 
     let
         fun isith (curel, (NotFound n)) = 
