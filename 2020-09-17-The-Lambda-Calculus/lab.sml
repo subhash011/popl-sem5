@@ -57,13 +57,13 @@ fun subst ((VAR x), expr1) (VAR y) = if x = y then expr1 else VAR(y)
     | subst ((VAR x), expr1) (FUNC((VAR e1), e2)) = if e1 = x then FUNC((VAR e1), e2) else FUNC((VAR e1), (subst ((VAR(x)), expr1) e2))
 
 
+(*
+examples
+*)
 val expr1 = FUNC(VAR("a"), APPLY(VAR("a"), VAR("b")))
 val expr2 = FUNC(VAR("a"), APPLY(FUNC(VAR("b"), VAR("b")), VAR("a")))
 val vars = ["aba", "baa", "aab"]
-val fresh_vars = fresh vars
-val free_e1 = free expr1
+val fresh_vars = fresh vars (*gives a fresh variable*)
+val free_e1 = free expr1 (*gives all free vars in expr1*)
 val free_e2 = free expr2
-val subst1 = subst (VAR("y"), expr1) expr2
-
-
-    
+val subst1 = subst (VAR("y"), expr1) expr2 (*performs subsitution*)
