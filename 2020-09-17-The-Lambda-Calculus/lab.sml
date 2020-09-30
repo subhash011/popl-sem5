@@ -1,6 +1,4 @@
-(*
-1. Define a type expr to capture this abstract syntax using ML data types with variables represented as strings
-*)
+(* Q1 *)
 
 type var = string
 
@@ -8,9 +6,7 @@ datatype expr = VAR of var
         | APPLY of expr * expr
         | FUNC of expr * expr
 
-(*
-2. Write a function fresh : string list -> string which will produce a fresh variable name, i.e. given xs : string list, the strin fresh xs will be different from all the strings in xs
-*)
+(* Q2 *)
 
 fun fresh [] = "a"
     | fresh ls = 
@@ -32,36 +28,30 @@ fun fresh [] = "a"
           freshutil ls 0
         end
     
-(*
-3. Write the function free : expr -> var list to compute the list of all free variables
-*)
+(* Q3 *)
 
 fun free expr = 
     let
         fun isPresent [] x = false
 	        | isPresent (x :: xs) y = if (x = y) then true else isPresent xs y
 
-        fun freeutil ls (VAR(e1)) = if (isPresent ls e1 = true) then [] else [e1]
+        fun freeutil ls (VAR e1) = if (isPresent ls e1 = true) then [] else [e1]
             | freeutil ls (APPLY(e1, e2)) = freeutil ls e1 @ freeutil ls e2
-            | freeutil ls (FUNC(VAR(e1), e2)) = freeutil (e1 :: ls) e2
+            | freeutil ls (FUNC(VAR e1, e2)) = freeutil (e1 :: ls) e2
     in
       freeutil [] expr
     end
 
-(*
-4. Write a function subst : var * expr -> expr -> expr where subst (x,N) M substitutes all free occurrence of x in M with N.
-*)
+(* Q4 *)
 
 fun subst ((VAR x), expr1) (VAR y) = if x = y then expr1 else VAR(y)
     | subst ((VAR x), expr1) (APPLY(e1, e2)) = APPLY ((subst ((VAR x), expr1) e1), (subst ((VAR x), expr1) e2))
-    | subst ((VAR x), expr1) (FUNC((VAR e1), e2)) = if e1 = x then FUNC((VAR e1), e2) else FUNC((VAR e1), (subst ((VAR(x)), expr1) e2))
+    | subst ((VAR x), expr1) (FUNC((VAR e1), e2)) = if e1 = x then FUNC((VAR e1), e2) else FUNC((VAR e1), (subst ((VAR x), expr1) e2))
 
+(* examples *)
 
-(*
-examples
-*)
 val expr1 = FUNC(VAR("a"), APPLY(VAR("a"), VAR("b")))
-val expr2 = FUNC(VAR("a"), APPLY(FUNC(VAR("b"), VAR("b")), VAR("a")))
+val expr2 = FUNC(VAR("a"), APPLY(FUNC(VAR "b", VAR "b"), VAR "a"))
 val vars = ["aba", "baa", "aab"]
 val fresh_vars = fresh vars (*gives a fresh variable*)
 val free_e1 = free expr1 (*gives all free vars in expr1*)
