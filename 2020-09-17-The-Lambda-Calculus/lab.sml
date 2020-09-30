@@ -56,4 +56,4 @@ val vars = ["aba", "baa", "aab"]
 val fresh_vars = fresh vars (*gives a fresh variable*)
 val free_e1 = free expr1 (*gives all free vars in expr1*)
 val free_e2 = free expr2
-val subst1 = subst (VAR("y"), expr1) expr2 (*performs subsitution*)
+val subst1 = subst (VAR "y", expr1) expr2 (*performs subsitution*)
