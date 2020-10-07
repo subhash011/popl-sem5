@@ -4,7 +4,7 @@ type var = string
 
 datatype expr = VAR of var
         | APPLY of expr * expr
-        | FUNC of expr * expr
+        | LAMBDA of expr * expr
 
 (* Q2 *)
 
@@ -37,7 +37,7 @@ fun free expr =
 
         fun freeutil ls (VAR e1) = if (isPresent ls e1 = true) then [] else [e1]
             | freeutil ls (APPLY(e1, e2)) = freeutil ls e1 @ freeutil ls e2
-            | freeutil ls (FUNC(VAR e1, e2)) = freeutil (e1 :: ls) e2
+            | freeutil ls (LAMBDA(VAR e1, e2)) = freeutil (e1 :: ls) e2
     in
       freeutil [] expr
     end
@@ -46,12 +46,12 @@ fun free expr =
 
 fun subst ((VAR x), expr1) (VAR y) = if x = y then expr1 else VAR(y)
     | subst ((VAR x), expr1) (APPLY(e1, e2)) = APPLY ((subst ((VAR x), expr1) e1), (subst ((VAR x), expr1) e2))
-    | subst ((VAR x), expr1) (FUNC((VAR e1), e2)) = if e1 = x then FUNC((VAR e1), e2) else FUNC((VAR e1), (subst ((VAR x), expr1) e2))
+    | subst ((VAR x), expr1) (LAMBDA((VAR e1), e2)) = if e1 = x then LAMBDA((VAR e1), e2) else LAMBDA((VAR e1), (subst ((VAR x), expr1) e2))
 
 (* examples *)
 
-val expr1 = FUNC(VAR("a"), APPLY(VAR("a"), VAR("b")))
-val expr2 = FUNC(VAR("a"), APPLY(FUNC(VAR "b", VAR "b"), VAR "a"))
+val expr1 = LAMBDA(VAR("a"), APPLY(VAR("a"), VAR("b")))
+val expr2 = LAMBDA(VAR("a"), APPLY(LAMBDA(VAR "b", VAR "b"), VAR "a"))
 val vars = ["aba", "baa", "aab"]
 val fresh_vars = fresh vars (*gives a fresh variable*)
 val free_e1 = free expr1 (*gives all free vars in expr1*)
