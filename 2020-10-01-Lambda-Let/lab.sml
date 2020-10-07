@@ -32,7 +32,7 @@ fun unletrec (VAR_LET_REC x) = VAR_LET (x)
     | unletrec (LAMBDA_LET_REC (e1, e2)) = LAMBDA_LET (e1, unletrec e2)
     | unletrec (APPLY_LET_REC (e1, e2)) = APPLY_LET(unletrec e1, unletrec e2)
     | unletrec (LET_REC (e1, e2, e3)) = 
-        (* Y = λf. (λx.f(x x)) (λx.f(x x)) *)
+        (* Y = λf.(λx.f(x x))(λx.f(x x)) *)
         let
             fun Y (LAMBDA_LET_REC (e1, e2)) =
             let
@@ -71,5 +71,5 @@ val unletex1 = unlet ex1
 val ex2 = LET_REC ( "fact", LAMBDA_LET_REC ("n", APPLY_LET_REC ( VAR_LET_REC ("fact"),  VAR_LET_REC ("n - 1"))) , APPLY_LET_REC ( VAR_LET_REC("fact"), VAR_LET_REC ("10") ) )
 val unletrecex2 = unletrec ex2;
 
-(*This time unlet after unletrec so we get lambda expr from letrec*)
+(* This time unlet after unletrec so we get lambda expr from letrec *)
 val unletex2 = unlet (unletrec ex2)
