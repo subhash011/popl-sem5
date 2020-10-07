@@ -32,7 +32,10 @@ fun unletrec (VAR_LET_REC x) = VAR_LET (x)
     | unletrec (LAMBDA_LET_REC (e1, e2)) = LAMBDA_LET (e1, unletrec e2)
     | unletrec (APPLY_LET_REC (e1, e2)) = APPLY_LET(unletrec e1, unletrec e2)
     | unletrec (LET_REC (e1, e2, e3)) = 
-        (* Y = λf.(λx.f(x x))(λx.f(x x)) *)
+        (* 
+            Y = λf.(λx.f(x x))(λx.f(x x)) 
+            The function Y computes the fixed point of LAMBDA_LET_REC
+        *)
         let
             fun Y (LAMBDA_LET_REC (e1, e2)) =
             let
