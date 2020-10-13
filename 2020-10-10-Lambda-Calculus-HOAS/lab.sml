@@ -81,8 +81,6 @@ fun apply (HL f) x = f x
 val identity = L ("t", V "t")
 val identityH = HL (fn t => t)
 
-
-
 (* e1 = fn t => t *)
 val e1 = HL (fn t => HA (t, HV "x"))
 (*
@@ -94,7 +92,7 @@ val subste1 = subst ("x", HV "y") e1
 val fsubste1 = apply subste1 (HV "aa") (*try HV "x" instead*)
 (*
 The below abstract gives 
-abste1 = HL (fn x => HL (fn t => HA (t, HV "x")))
+abste1 = HL (fn x => HL (fn t => HA (t, x)))
 1. apply abste1 (HV "aa") should give HL (fn t => HA (t, HV "aa")) --> temp
 2. apply temp (HV "ab") should give HA (HV "ab", HV "aa")
 *)
