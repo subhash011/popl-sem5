@@ -89,7 +89,7 @@ subste1 = HL (fn t => HA (t, HV "y"))
 so apply subste1 (HV "aa") should give HA ("aa", "y")
 *)
 val subste1 = subst ("x", HV "y") e1
-val fsubste1 = apply subste1 (HV "aa") (*try HV "x" instead*)
+val fsubste1 = apply subste1 (HV "aa")
 (*
 The below abstract gives 
 abste1 = HL (fn x => HL (fn t => HA (t, x)))
