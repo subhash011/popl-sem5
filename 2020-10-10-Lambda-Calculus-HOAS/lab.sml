@@ -81,6 +81,9 @@ fun apply (HL f) x = f x
 val identity = L ("t", V "t")
 val identityH = HL (fn t => t)
 
+val e = HA (HA (HA ( HV "aa", HV "ab" ), HV "c"), HV "ac")
+val freshe = freshen e;
+
 (* e1 = fn t => t *)
 val e1 = HL (fn t => HA (t, HV "x"))
 (*
