@@ -40,12 +40,7 @@ struct
 
     val empty = telescope.empty
 
-    (* given a list of terms and a variable, check if variable is in the telescope,
-        for it to be valid, the term must not be there *)
-    fun isValidInsertLs (tele: map) (v: V.var) [] = true
-        | isValidInsertLs (tele: map) (v: V.var) (x::xs) = 
-            let
-                fun isValidInsertTerm (tele: map) (x: V.var) (term.VarTerm v) = 
+    fun isValidInsertTerm (tele: map) (x: V.var) (term.VarTerm v) = 
                     let
                         val search = telescope.find(tele, x)
                     in
@@ -53,11 +48,11 @@ struct
                            SOME trm => if term.occurs(trm, v) then false else true
                          | NONE => true
                     end
-                    | isValidInsertTerm (tele: map) (x: V.var) (term.SigTerm (sym, ls)) = isValidInsertLs tele v xs
+        | isValidInsertTerm (tele: map) (x: V.var) (term.SigTerm (sym, ls)) = (isValidInsertLs tele x ls) andalso (S.arity sym = List.length(ls))
 
-            in
+    and isValidInsertLs (tele: map) (v: V.var) [] = true
+        | isValidInsertLs (tele: map) (v: V.var) (x::xs) = 
                  if ((isValidInsertTerm tele v x) andalso (isValidInsertLs tele v xs)) then true else false
-            end
 
     (* insert a map into telescope, if it is valid by checking the above cond *)
     fun insert (tele: map) (x: V.var) (term.VarTerm t) : map option =  if V.Ord.compare (x, t) = EQUAL
@@ -68,16 +63,20 @@ struct
                                                             case search of
                                                                SOME trm =>  if term.occurs(trm, t) 
                                                                             then NONE
-                                                                            else SOME (telescope.insert(tele, x, term.VarTerm t))
-                                                             | NONE => SOME (telescope.insert(tele, x, term.VarTerm t))
+                                                                            else if (isValidInsertTerm tele x (term.VarTerm t))
+                                                                            then SOME (telescope.insert(tele, x, term.VarTerm t))
+                                                                            else NONE
+                                                             | NONE =>  if (isValidInsertTerm tele x (term.VarTerm t))
+                                                                        then SOME (telescope.insert(tele, x, term.VarTerm t))
+                                                                        else NONE
                                                         end
         | insert (tele: map) (x: V.var) (term.SigTerm (sym, ls)) : map option = let
-                                                            val term = term.SigTerm (sym, ls)
+                                                            val t = term.SigTerm (sym, ls)
                                                         in
-                                                            if term.occurs(term, x) 
+                                                            if term.occurs(t, x) 
                                                             then NONE
                                                             else if (isValidInsertLs tele x ls)
-                                                            then SOME (telescope.insert(tele, x, term))
+                                                            then SOME (telescope.insert(tele, x, t))
                                                             else NONE
                                                         end
 end
@@ -188,32 +187,52 @@ structure unify = Unify (S) (V)
 val tele = unify.empty;
 Control.Print.printDepth := 100;
 fun App (sym, ls) = unify.SigTerm (sym, ls)
+fun Var v = unify.VarTerm v
+val X = Var x
+val Y = Var y
+val Z = Var z
+fun add ls = App (Add, ls)
+fun succ ls = App (Succ, ls)
+fun zero ls = App (Zero, ls)
+
 (* 
     Invalid := Succ (x, y) 
     because arity of Succ is 1
 *)
-val invt1 = App (Succ, [unify.VarTerm x, unify.VarTerm y])
+val invt1 = App (Succ, [X, Y])
 val invt1_ans = unify.isValid invt1
 
 (* 
     Valid: 
         t1 := Add (x, Add (y, z))
-        t2 := Add (Succ (y), Add (Zero (z), Succ (x)))
+        t2 := Add (Succ (y), Add (Zero, Succ (x)))
+        t3 := Add (x, y)
+        t4 := Add (Add (Succ (Zero), Succ (x)), Add (Zero, Succ (z)))
 *)
 
-val t1 = App (Add, [unify.VarTerm x, App (Add, [unify.VarTerm y, unify.VarTerm z])])
-val t2 = App (Add, [App (Succ, [unify.VarTerm y]), App (Add, [App (Zero, [unify.VarTerm z]), App (Succ, [unify.VarTerm x])])])
+val t1 = add [X, add [Y, Z]]
+val t2 = add [succ [Y], add [zero [], succ [X]]]
+val t3 = add [X, Y]
+val t4 = add [add [succ [zero []], succ [X]], add [zero [], succ [Z]]]
 val validity = (unify.isValid t1, unify.isValid t2)
 
-val tryUnify = unify.unify tele (t1, t2)
+val ut1t2 = unify.unify tele (t1, t2)
+val ut3t4 = unify.unify tele (t3, t4)
 
 (* 
     from t1 aand t2 we can see that after unification,
     x ≡ Succ (y)
-    y ≡ Zero (z)
+    y ≡ Zero
     z ≡ Succ (x)
+
+    from t3 and t4 we can see that
+    x ≡ Add (Succ (Zero), Succ (x))
+    y ≡ Add (Zero, Succ (z))
 *)
 
-val x_t = valOf(unify.telescope.find(valOf(tryUnify), x));
-val y_t =  valOf(unify.telescope.find(valOf(tryUnify), y));
-val z_t =  valOf(unify.telescope.find(valOf(tryUnify), z));
+val x_t12 = valOf(unify.telescope.find(valOf(ut1t2), x));
+val y_t12 =  valOf(unify.telescope.find(valOf(ut1t2), y));
+val z_t12 =  valOf(unify.telescope.find(valOf(ut1t2), z));
+
+val x_t34 = valOf(unify.telescope.find(valOf(ut3t4), x));
+val y_t34 =  valOf(unify.telescope.find(valOf(ut3t4), y));
