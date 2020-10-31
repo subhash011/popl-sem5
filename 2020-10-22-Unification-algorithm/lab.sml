@@ -48,7 +48,8 @@ struct
                            SOME trm => if term.occurs(trm, v) then false else true
                          | NONE => true
                     end
-        | isValidInsertTerm (tele: map) (x: V.var) (term.SigTerm (sym, ls)) = (isValidInsertLs tele x ls) andalso (S.arity sym = List.length(ls))
+        | isValidInsertTerm (tele: map) (x: V.var) (term.SigTerm (sym, ls)) =
+            (S.arity sym = List.length(ls)) andalso (isValidInsertLs tele x ls)
 
     and isValidInsertLs (tele: map) (v: V.var) [] = true
         | isValidInsertLs (tele: map) (v: V.var) (x::xs) = 
@@ -95,36 +96,38 @@ struct
         | lsToPairls _ [] = []
         | lsToPairls (x::xs) (y::ys) = (x, y) :: (lsToPairls xs ys)
 
-    fun unify (tele: map) (SigTerm (sym1, ls1), SigTerm (sym2, ls2)) = if (S.arity sym1 = S.arity sym2) 
-                                                                            then unifyList tele (lsToPairls ls1 ls2)
-                                                                            else NONE
-        | unify (tele: map) (VarTerm v1, VarTerm v2) = let
+    fun unify (tele: map) (SigTerm (sym1, ls1), SigTerm (sym2, ls2)) : map option = if (S.arity sym1 = S.arity sym2) 
+                                                                        andalso (S.arity sym1 = List.length (ls1)) 
+                                                                        andalso (S.arity sym2 = List.length (ls2))
+                                                                        then unifyList tele (lsToPairls ls1 ls2)
+                                                                        else NONE
+        | unify (tele: map) (VarTerm v1, VarTerm v2) : map option = let
                                                             val search = (telescope.find (tele, v1), telescope.find (tele, v2)) 
                                                         in
                                                             case search of
-                                                               (NONE, NONE) => SOME (telescope.insert (tele, v1, (VarTerm v2)))
-                                                               | (SOME x, NONE) => SOME (telescope.insert (tele, v2, x))
-                                                               | (NONE, SOME y) => SOME (telescope.insert (tele, v1, y))
-                                                               | (SOME x, SOME y) => unify tele (x, y)
+                                                               (NONE, NONE) => (insert tele v1 (VarTerm v2))
+                                                               | (SOME x, NONE) => (insert tele v2 x)
+                                                               | (NONE, SOME y) => (insert tele v1 y)
+                                                               | (SOME x, SOME y) => (unify tele (x, y))
                                                         end
-        | unify (tele: map) (VarTerm v, SigTerm (sym, ls)) =    let
+        | unify (tele: map) (VarTerm v, SigTerm (sym, ls)) : map option =    let
                                                                     val search = telescope.find (tele, v)
                                                                 in
                                                                     case search of
-                                                                       NONE => SOME (telescope.insert (tele, v, (SigTerm (sym, ls))))
-                                                                     | SOME t => unify tele (t, SigTerm (sym, ls))
+                                                                       NONE => (insert tele v (SigTerm (sym, ls)))
+                                                                     | SOME t => (unify tele (t, SigTerm (sym, ls)))
                                                                 end
-        | unify (tele: map) (SigTerm (sym, ls), VarTerm v) = unify tele (VarTerm v, SigTerm (sym, ls))
+        | unify (tele: map) (SigTerm (sym, ls), VarTerm v) : map option = (unify tele (VarTerm v, SigTerm (sym, ls)))
     
-    and unifyList (tele: map) ls = 
+    and unifyList (tele: map) ls : map option = 
         case ls of
         [] => SOME tele
         | x::xs => let 
                         val tele2 = (unify tele x) 
                     in
                         case tele2 of
-                        NONE => NONE 
-                        | SOME t =>  (unifyList t xs) 
+                        NONE => NONE
+                        | SOME t => (unifyList t xs) 
                     end
 
 
@@ -182,15 +185,13 @@ struct
     end
 end
 
-
-structure unify = Unify (S) (V)
-val tele = unify.empty;
-Control.Print.printDepth := 100;
+structure unify = Unify (S) (V);
 fun App (sym, ls) = unify.SigTerm (sym, ls)
 fun Var v = unify.VarTerm v
 val X = Var x
 val Y = Var y
-val Z = Var z
+val Z = Var z;
+Control.Print.printDepth := 100;
 fun add ls = App (Add, ls)
 fun succ ls = App (Succ, ls)
 fun zero ls = App (Zero, ls)
@@ -207,17 +208,20 @@ val invt1_ans = unify.isValid invt1
         t1 := Add (x, Add (y, z))
         t2 := Add (Succ (y), Add (Zero, Succ (x)))
         t3 := Add (x, y)
-        t4 := Add (Add (Succ (Zero), Succ (x)), Add (Zero, Succ (z)))
+        t4 := Add (Add (Succ (Zero), Succ (y)), Add (Zero, Succ (z)))
 *)
 
 val t1 = add [X, add [Y, Z]]
 val t2 = add [succ [Y], add [zero [], succ [X]]]
 val t3 = add [X, Y]
-val t4 = add [add [succ [zero []], succ [X]], add [zero [], succ [Z]]]
+val t4 = add [add [succ [zero []], succ [Y]], add [zero [], succ [Z]]]
 val validity = (unify.isValid t1, unify.isValid t2)
 
-val ut1t2 = unify.unify tele (t1, t2)
-val ut3t4 = unify.unify tele (t3, t4)
+val tele1 = unify.empty;
+val ut1t2 = unify.unify tele1 (t1, t2)
+
+val tele2 = unify.empty;
+val ut3t4 = unify.unify tele2 (t3, t4)
 
 (* 
     from t1 aand t2 we can see that after unification,
@@ -226,13 +230,18 @@ val ut3t4 = unify.unify tele (t3, t4)
     z ≡ Succ (x)
 
     from t3 and t4 we can see that
-    x ≡ Add (Succ (Zero), Succ (x))
+    x ≡ Add (Succ (Zero), Succ (y))
     y ≡ Add (Zero, Succ (z))
 *)
 
-val x_t12 = valOf(unify.telescope.find(valOf(ut1t2), x));
-val y_t12 =  valOf(unify.telescope.find(valOf(ut1t2), y));
-val z_t12 =  valOf(unify.telescope.find(valOf(ut1t2), z));
+fun showVal a b = 
+    case a of
+       NONE => NONE
+     | SOME ax => SOME (valOf(unify.telescope.find(ax, b)))
 
-val x_t34 = valOf(unify.telescope.find(valOf(ut3t4), x));
-val y_t34 =  valOf(unify.telescope.find(valOf(ut3t4), y));
+val x_t12 = showVal ut1t2 x;
+val y_t12 = showVal ut1t2 y;
+val z_t12 = showVal ut1t2 z;
+
+val x_t34 = showVal ut3t4 x;
+val y_t34 = showVal ut3t4 y;
