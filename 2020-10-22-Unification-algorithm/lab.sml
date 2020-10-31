@@ -24,7 +24,13 @@ struct
             end
 
     (* if arity not equal to number of args of function symbol return false *)
-    fun isValid (SigTerm (sym, tlist)) = (S.arity sym = List.length (tlist))
+    fun isValid (SigTerm (sym, tlist)) = 
+            let
+                fun isValidUtil [] = true
+                    | isValidUtil (x::xs) = (isValid x) andalso (isValidUtil xs)
+            in
+                (S.arity sym = List.length(tlist)) andalso (isValidUtil tlist)
+            end
         | isValid (VarTerm x) = true
 
 end
@@ -245,3 +251,18 @@ val z_t12 = showVal ut1t2 z;
 
 val x_t34 = showVal ut3t4 x;
 val y_t34 = showVal ut3t4 y;
+
+
+(* 
+    invalid:
+        a1 := Add (x, Add (y, z))
+        a2 := Add (Succ (y), Add (Zero (y), Succ (x)))
+        a2 is invalid because arity of Zero is 0 but it has one arg here
+    so unifying a1 and a2 will give NONE
+
+*)
+val telex = unify.empty
+val a1 = add [X, add [Y, Z]]
+val a2 = add [succ [Y], add [zero [Y], succ [X]]]
+val isValida2 = unify.isValid a2;
+val a3 = showVal (unify.unify telex (a1, a2)) x
