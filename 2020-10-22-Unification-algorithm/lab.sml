@@ -141,6 +141,12 @@ end
 
 (* Examples section *)
 
+(* 
+    The structures are similar to the peano type
+    but an addional type 'Add' was added to have arity 2
+    for testing
+*)
+
 datatype sym = Zero | Succ | Add
 datatype var = x | y | z
 
@@ -258,11 +264,22 @@ val y_t34 = showVal ut3t4 y;
         a1 := Add (x, Add (y, z))
         a2 := Add (Succ (y), Add (Zero (y), Succ (x)))
         a2 is invalid because arity of Zero is 0 but it has one arg here
+        b1 := Add (x, y)
+        b2 = Add (Succ (x), z)
+        unifying both is invalid because x and Succ (x) leads to recursion
     so unifying a1 and a2 will give NONE
 
 *)
-val telex = unify.empty
+val tele3 = unify.empty
+val tele4 = unify.empty
+
 val a1 = add [X, add [Y, Z]]
 val a2 = add [succ [Y], add [zero [Y], succ [X]]]
+val b1 = add [X, Y]
+val b2 = add [succ [X], Z]
+
 val isValida2 = unify.isValid a2;
-val a3 = showVal (unify.unify telex (a1, a2)) x
+val unifya12 = unify.unify tele3 (a1, a2)
+val a3 = showVal unifya12 x
+val unifyb12 = unify.unify tele4 (b1, b2)
+val b3 = showVal unifyb12 x
